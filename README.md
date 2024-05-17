@@ -12,6 +12,8 @@ Jig can also _**generate**_ a config file from your current tmux sessions, _**in
 custom variables, _**partially**_ start specific windows, and even include other
 configuration files with the `!include` YAML directive.
 
+![Jig screenshot](https://raw.githubusercontent.com/rafi/notebook/master/static/img/project/jig/jig.gif)
+
 ## Features
 
 - Recreate tmux sessions, windows, and panes from a single YAML file.
@@ -23,6 +25,7 @@ configuration files with the `!include` YAML directive.
 
 ## Installation
 
+- macOS with Homebrew: `brew install rafi/tap/jig`
 - Download from the [releases page](https://github.com/rafi/jig/releases)
 - Compile: `git clone git@github:/rafi/jig.git && cd jig && go install`
 
