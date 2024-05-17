@@ -1,0 +1,35 @@
+# golangci-lint config
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  timeout: 2m
+
+linters:
+  disable:
+    - contextcheck
+    - errchkjson
+    - gci
+    - gofumpt
+    - gosec
+    - scopelint
+    - tagalign
+  enable:
+    - gosimple
+    - misspell
+    - unconvert
+  presets:
+    - bugs
+    - format
+    - unused
+
+issues:
+  exclude-dirs:
+    - bin
+    - vendor
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/rafi/jig
+
+  exhaustive:
+    default-signifies-exhaustive: true
