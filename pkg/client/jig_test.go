@@ -187,7 +187,7 @@ func TestStartStopSession(t *testing.T) {
 			[]string{
 				"tmux has-session -t ses:",
 				"tmux new-session -Pd -F #{session_id} -s ses -n win1 -c /tmp",
-				"tmux new-window -Pda -t ses: -F #{window_id} -c /tmp -n win2",
+				"tmux new-window -Pd -t ses: -F #{window_id} -c /tmp -n win2",
 				"tmux attach -d -t ses",
 			},
 			[]string{
@@ -265,7 +265,7 @@ func TestStartStopSession(t *testing.T) {
 			[]string{
 				"tmux display-message -p #S",
 				"tmux has-session -t ses:",
-				"tmux new-window -Pda -t ses: -F #{window_id} -c /tmp -n win1",
+				"tmux new-window -Pd -t ses: -F #{window_id} -c /tmp -n win1",
 			},
 			[]string{
 				"tmux kill-session -t ses",
@@ -285,7 +285,7 @@ func TestStartStopSession(t *testing.T) {
 			[]string{
 				"tmux display-message -p #S",
 				"tmux has-session -t ses:",
-				"tmux new-window -Pda -t ses: -F #{window_id} -c /tmp -n win1",
+				"tmux new-window -Pd -t ses: -F #{window_id} -c /tmp -n win1",
 			},
 			[]string{
 				"tmux kill-session -t ses",

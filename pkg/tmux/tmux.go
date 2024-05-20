@@ -35,7 +35,7 @@ func (t TmuxClient) NewSession(name, dir, windowName string) (string, error) {
 // NewWindow creates a new window with optional name and directory.
 func (t TmuxClient) NewWindow(session, name, dir string) (string, error) {
 	args := []string{
-		"new-window", "-Pda",
+		"new-window", "-Pd",
 		"-t", session + ":",
 		"-F", "#{window_id}",
 	}

@@ -2,7 +2,6 @@ package client
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"slices"
 	"time"
@@ -36,6 +35,7 @@ func (j Jig) Start(config Config, windows []string) error {
 
 // startSession starts a new tmux session, creates all windows and panes.
 func (j Jig) startSession(session Config, windows []string) error {
+	var err error
 	// Use config session name, or current session name if windows should be
 	// created within the current session.
 	sessionName := session.Session
@@ -43,25 +43,14 @@ func (j Jig) startSession(session Config, windows []string) error {
 		return ErrNoSessionName
 	}
 	if j.Options.Inside {
-		var err error
 		if sessionName, err = j.Tmux.SessionName(); err != nil {
 			return err
 		}
 	}
 
-	currentDirectory, err := os.Getwd()
-	if err != nil {
-		return err
-	}
 	// Resolve session start directory.
-	// If session path is empty, use config path.
-	// If session path is "." or "./", use current directory.
-	sessionPath := shell.ExpandPath(session.Path)
-	if session.Path == "" {
-		sessionPath = filepath.Dir(session.ConfigPath)
-	}
-	if session.Path == "." || session.Path == "./" {
-		sessionPath = currentDirectory
+	if session.Path, err = session.GetSessionPath(); err != nil {
+		return err
 	}
 
 	firstWindowName := ""
@@ -78,13 +67,13 @@ func (j Jig) startSession(session Config, windows []string) error {
 		return nil
 	case !sessionExists:
 		// Execute "before" commands.
-		err := j.execShellCommands(session.Before, sessionPath)
+		err := j.execShellCommands(session.Before, session.Path)
 		if err != nil {
 			return err
 		}
 
 		// Create new session and set environment variables.
-		_, err = j.Tmux.NewSession(session.Session, sessionPath, firstWindowName)
+		_, err = j.Tmux.NewSession(session.Session, session.Path, firstWindowName)
 		if err != nil {
 			return err
 		}
@@ -104,21 +93,18 @@ func (j Jig) startSession(session Config, windows []string) error {
 		}
 
 		// Resolve window start directory.
-		// If window path is empty, use config path.
-		// If window path is "." or "./", use current directory.
-		windowPath := shell.ExpandPath(w.Path)
-		if w.Path == "." || w.Path == "./" {
-			windowPath = currentDirectory
+		if w.Path != "" {
+			w.Path = shell.ExpandPath(w.Path)
 		}
 		if w.Path == "" || !filepath.IsAbs(w.Path) {
-			windowPath = filepath.Join(sessionPath, w.Path)
+			w.Path = filepath.Join(session.Path, w.Path)
 		}
 
 		// Create the windowID, unless it's the first one.
 		windowID := ""
 		switch {
 		case i > 0 || j.Options.Inside:
-			windowID, err = j.Tmux.NewWindow(sessionName, w.Name, windowPath)
+			windowID, err = j.Tmux.NewWindow(sessionName, w.Name, w.Path)
 			if err != nil {
 				return err
 			}
@@ -167,12 +153,12 @@ func (j Jig) startSession(session Config, windows []string) error {
 			// Resolve pane start directory.
 			// If pane path is empty, use config path.
 			// If pane path is "." or "./", use current directory.
-			panePath := shell.ExpandPath(p.Path)
-			if p.Path == "." || p.Path == "./" {
-				panePath = currentDirectory
+			if p.Path != "" {
+				p.Path = shell.ExpandPath(p.Path)
 			}
-			if p.Path == "" || !filepath.IsAbs(p.Path) {
-				panePath = filepath.Join(windowPath, p.Path)
+			panePath := shell.ExpandPath(p.Path)
+			if p.Path == "" || !filepath.IsAbs(panePath) {
+				panePath = filepath.Join(w.Path, p.Path)
 			}
 
 			split := tmux.VSplit

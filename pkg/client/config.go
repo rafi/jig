@@ -9,6 +9,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
+	"github.com/rafi/jig/pkg/shell"
 	"github.com/rafi/jig/pkg/yaml/processor"
 )
 
@@ -50,6 +51,20 @@ type Pane struct {
 	Focus    bool     `yaml:"focus,omitempty"`
 	Commands []string `yaml:"commands,omitempty"`
 	Cmd      string   `yaml:"cmd,omitempty"`
+}
+
+func (c Config) GetSessionPath() (string, error) {
+	// Resolve session start directory.
+	// If session path is empty, use config path.
+	// If session path is "." or "./", use current directory.
+	switch c.Path {
+	case "":
+		return filepath.Dir(c.ConfigPath), nil
+	case ".", "./":
+		return os.Getwd()
+	default:
+		return shell.ExpandPath(c.Path), nil
+	}
 }
 
 // FindConfig finds the config filename in the specified directory.

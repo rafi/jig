@@ -15,8 +15,11 @@ func (j Jig) stopSession(session Config, windows []string) error {
 	if len(windows) == 0 {
 		// Executes `after` commands.
 		if len(session.After) > 0 {
-			err := j.execShellCommands(session.After, session.Path)
+			sessionPath, err := session.GetSessionPath()
 			if err != nil {
+				return err
+			}
+			if err := j.execShellCommands(session.After, sessionPath); err != nil {
 				return err
 			}
 		}
