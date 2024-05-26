@@ -3,6 +3,8 @@ package client
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/rafi/jig/pkg/tmux"
 )
 
 // GenerateSessionConfig creates a Config object from a tmux session.
@@ -15,7 +17,8 @@ func (j Jig) GenerateSessionConfig(sessionName string) (Config, error) {
 		return config, err
 	}
 
-	tmuxWindows, err := j.Tmux.ListWindows(sessionName)
+	target := tmux.Target{Session: sessionName}
+	tmuxWindows, err := j.Tmux.ListWindows(target)
 	if err != nil {
 		return config, err
 	}
@@ -23,7 +26,8 @@ func (j Jig) GenerateSessionConfig(sessionName string) (Config, error) {
 	currentShell := filepath.Base(os.Getenv("SHELL"))
 
 	for _, w := range tmuxWindows {
-		tmuxPanes, err := j.Tmux.ListPanes(sessionName, w.ID)
+		target.Window = w.ID
+		tmuxPanes, err := j.Tmux.ListPanes(target)
 		if err != nil {
 			return config, err
 		}

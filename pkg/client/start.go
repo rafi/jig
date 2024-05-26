@@ -36,6 +36,7 @@ func (j Jig) Start(config Config, windows []string) error {
 // startSession starts a new tmux session, creates all windows and panes.
 func (j Jig) startSession(session Config, windows []string) error {
 	var err error
+
 	// Use config session name, or current session name if windows should be
 	// created within the current session.
 	sessionName := session.Session
@@ -53,9 +54,9 @@ func (j Jig) startSession(session Config, windows []string) error {
 		return err
 	}
 
-	firstWindowName := ""
+	firstWinName := ""
 	if len(session.Windows) > 0 {
-		firstWindowName = session.Windows[0].Name
+		firstWinName = session.Windows[0].Name
 	}
 
 	sessionExists := j.Tmux.SessionExists(sessionName)
@@ -73,7 +74,7 @@ func (j Jig) startSession(session Config, windows []string) error {
 		}
 
 		// Create new session and set environment variables.
-		_, err = j.Tmux.NewSession(session.Session, session.Path, firstWindowName)
+		_, err = j.Tmux.NewSession(session.Session, session.Path, firstWinName)
 		if err != nil {
 			return err
 		}
@@ -84,11 +85,16 @@ func (j Jig) startSession(session Config, windows []string) error {
 			}
 		}
 	}
+	return j.createSessionWindows(session, windows)
+}
 
-	// Create windows inside the session.
+// createSessionWindows creates windows inside the session.
+func (j Jig) createSessionWindows(session Config, explicitWindows []string) error {
+	var err error
+	target := tmux.Target{Session: session.Session}
 	for i, w := range session.Windows {
-		if (len(windows) == 0 && w.Manual) ||
-			(len(windows) > 0 && !slices.Contains(windows, w.Name)) {
+		if (len(explicitWindows) == 0 && w.Manual) ||
+			(len(explicitWindows) > 0 && !slices.Contains(explicitWindows, w.Name)) {
 			continue
 		}
 
@@ -100,59 +106,56 @@ func (j Jig) startSession(session Config, windows []string) error {
 			w.Path = filepath.Join(session.Path, w.Path)
 		}
 
-		// Create the windowID, unless it's the first one.
-		windowID := ""
+		// Create a window, unless it's the first one.
+		target.Window = ""
+		target.Pane = ""
 		switch {
 		case i > 0 || j.Options.Inside:
-			windowID, err = j.Tmux.NewWindow(sessionName, w.Name, w.Path)
+			target.Window, err = j.Tmux.NewWindow(target, w.Name, w.Path)
 			if err != nil {
 				return err
 			}
+
+		// If processing 1st window, and it's named - then use its name as id.
 		case i == 0 && w.Name != "":
-			windowID = w.Name
+			target.Window = w.Name
+
+		// If first window is unnamed, ask tmux for the session's first window.
 		case i == 0 && w.Name == "":
-			currentWindows, err := j.Tmux.ListWindows(sessionName)
+			currentWindows, err := j.Tmux.ListWindows(target)
 			if err != nil {
 				return err
 			}
 			if len(currentWindows) == 0 {
 				return ErrNoWindowsFound
 			}
-			windowID = currentWindows[0].ID
-		}
-
-		// Window already exists? Skipping.
-		if windowID == "" {
-			continue
+			target.Window = currentWindows[0].ID
 		}
 
 		// Optionally focus window.
 		if w.Focus {
-			err := j.Tmux.SelectWindow(sessionName, windowID)
+			err := j.Tmux.SelectWindow(target)
 			if err != nil {
 				return err
 			}
 		}
 
-		// Run commands
-		if w.Cmd != "" {
-			w.Commands = append(w.Commands, w.Cmd)
-		}
-		for _, cmd := range w.Commands {
+		// Run window commands.
+		newWinCommands := w.GetCommands()
+		for _, cmd := range newWinCommands {
 			if session.SuppressHistory {
 				cmd = " " + cmd
 			}
 			time.Sleep(time.Millisecond * time.Duration(session.CommandDelay))
-			if err := j.Tmux.SendWindowKeys(sessionName, windowID, cmd); err != nil {
+			err := j.Tmux.SendKeys(target, cmd)
+			if err != nil {
 				fmt.Println(err)
 			}
 		}
 
-		// Create panes
+		// Create panes.
 		for _, p := range w.Panes {
 			// Resolve pane start directory.
-			// If pane path is empty, use config path.
-			// If pane path is "." or "./", use current directory.
 			if p.Path != "" {
 				p.Path = shell.ExpandPath(p.Path)
 			}
@@ -161,25 +164,18 @@ func (j Jig) startSession(session Config, windows []string) error {
 				panePath = filepath.Join(w.Path, p.Path)
 			}
 
-			split := tmux.VSplit
-			if p.Type != "" {
-				split = tmux.SplitType(p.Type)
-			}
-			paneID, err := j.Tmux.NewPane(sessionName, windowID, panePath, split)
+			target.Pane, err = j.Tmux.NewPane(target, panePath, p.Type)
 			if err != nil {
 				return err
 			}
 
 			// Run commands inside pane.
-			if p.Cmd != "" {
-				p.Commands = append(p.Commands, p.Cmd)
-			}
-			for _, cmd := range p.Commands {
+			for _, cmd := range p.GetCommands() {
 				if session.SuppressHistory {
 					cmd = " " + cmd
 				}
 				time.Sleep(time.Millisecond * time.Duration(session.CommandDelay))
-				err = j.Tmux.SendPaneKeys(sessionName, windowID, paneID, cmd)
+				err := j.Tmux.SendKeys(target, cmd)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -187,15 +183,15 @@ func (j Jig) startSession(session Config, windows []string) error {
 
 			// Optionally focus a pane.
 			if p.Focus {
-				err := j.Tmux.SelectPane(sessionName, windowID, paneID)
-				if err != nil {
+				if err := j.Tmux.SelectPane(target); err != nil {
 					return err
 				}
 			}
 		}
 
+		target.Pane = ""
 		if w.Layout != "" {
-			_, err = j.Tmux.SelectLayout(sessionName, windowID, w.Layout)
+			_, err := j.Tmux.SelectLayout(target, w.Layout)
 			if err != nil {
 				return err
 			}

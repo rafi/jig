@@ -33,26 +33,6 @@ type Config struct {
 	ConfigPath string `yaml:"config_path,omitempty"`
 }
 
-type Window struct {
-	Name     string   `yaml:"name"`
-	Before   []string `yaml:"before,omitempty"`
-	Panes    []Pane   `yaml:"panes,omitempty"`
-	Layout   string   `yaml:"layout"`
-	Focus    bool     `yaml:"focus,omitempty"`
-	Manual   bool     `yaml:"manual,omitempty"`
-	Path     string   `yaml:"path,omitempty"`
-	Commands []string `yaml:"commands,omitempty"`
-	Cmd      string   `yaml:"cmd,omitempty"`
-}
-
-type Pane struct {
-	Type     string   `yaml:"type,omitempty"`
-	Path     string   `yaml:"path,omitempty"`
-	Focus    bool     `yaml:"focus,omitempty"`
-	Commands []string `yaml:"commands,omitempty"`
-	Cmd      string   `yaml:"cmd,omitempty"`
-}
-
 func (c Config) GetSessionPath() (string, error) {
 	// Resolve session start directory.
 	// If session path is empty, use config path.
@@ -65,6 +45,48 @@ func (c Config) GetSessionPath() (string, error) {
 	default:
 		return shell.ExpandPath(c.Path), nil
 	}
+}
+
+type Window struct {
+	Name     string   `yaml:"name"`
+	Before   []string `yaml:"before,omitempty"`
+	Panes    []Pane   `yaml:"panes,omitempty"`
+	Layout   string   `yaml:"layout"`
+	Focus    bool     `yaml:"focus,omitempty"`
+	Manual   bool     `yaml:"manual,omitempty"`
+	Path     string   `yaml:"path,omitempty"`
+	Commands []string `yaml:"commands,omitempty"`
+	Cmd      string   `yaml:"cmd,omitempty"`
+}
+
+func (w Window) GetCommands() []string {
+	cmds := w.Commands
+	if cmds == nil {
+		cmds = []string{}
+	}
+	if w.Cmd != "" {
+		cmds = append(cmds, w.Cmd)
+	}
+	return cmds
+}
+
+type Pane struct {
+	Type     string   `yaml:"type,omitempty"`
+	Path     string   `yaml:"path,omitempty"`
+	Focus    bool     `yaml:"focus,omitempty"`
+	Commands []string `yaml:"commands,omitempty"`
+	Cmd      string   `yaml:"cmd,omitempty"`
+}
+
+func (p Pane) GetCommands() []string {
+	cmds := p.Commands
+	if cmds == nil {
+		cmds = []string{}
+	}
+	if p.Cmd != "" {
+		cmds = append(cmds, p.Cmd)
+	}
+	return cmds
 }
 
 // FindConfig finds the config filename in the specified directory.

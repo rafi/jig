@@ -59,12 +59,12 @@ func New(opts Options, commander shell.Commander) (Jig, error) {
 }
 
 // SwitchOrAttach switches to a tmux session or attaches to it if it exists.
-func (j Jig) SwitchOrAttach(target string) error {
+func (j Jig) SwitchOrAttach(session string) error {
 	if j.InSession {
-		return j.Tmux.SwitchClient(target)
+		return j.Tmux.SwitchClient(session)
 	}
 	if !j.InSession {
-		return j.Tmux.Attach(target, os.Stdin, os.Stdout, os.Stderr)
+		return j.Tmux.Attach(session, os.Stdin, os.Stdout, os.Stderr)
 	}
 	return nil
 }
@@ -85,13 +85,11 @@ func (j Jig) execShellCommands(commands []string, path string) error {
 }
 
 // Sets a map of environment variables inside a tmux session.
-func (j Jig) setEnvVariables(target string, env map[string]string) error {
+func (j Jig) setEnvVariables(session string, env map[string]string) error {
 	for key, value := range env {
-		_, err := j.Tmux.SetEnv(target, key, value)
-		if err != nil {
+		if _, err := j.Tmux.SetEnv(session, key, value); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }

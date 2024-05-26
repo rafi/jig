@@ -1,5 +1,7 @@
 package client
 
+import "github.com/rafi/jig/pkg/tmux"
+
 // Stop stops a tmux session and its nested sessions, if any.
 func (j Jig) Stop(config Config, windows []string) error {
 	for _, s := range config.Sessions {
@@ -12,6 +14,8 @@ func (j Jig) Stop(config Config, windows []string) error {
 
 // stopSession stops a tmux session, and optionally run `after` commands.
 func (j Jig) stopSession(session Config, windows []string) error {
+	target := tmux.Target{Session: session.Session}
+
 	if len(windows) == 0 {
 		// Executes `after` commands.
 		if len(session.After) > 0 {
@@ -23,16 +27,16 @@ func (j Jig) stopSession(session Config, windows []string) error {
 				return err
 			}
 		}
-		_, err := j.Tmux.StopSession(session.Session)
+		_, err := j.Tmux.StopSession(target)
 		return err
 	}
 
+	// Kill specific windows
 	for _, window := range windows {
-		err := j.Tmux.KillWindow(session.Session, window)
-		if err != nil {
+		target.Window = window
+		if err := j.Tmux.KillWindow(target); err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
