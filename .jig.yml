@@ -1,0 +1,11 @@
+---
+
+session: jig
+windows:
+  - name: code
+    focus: true
+    cmd: nvim
+  - commands:
+      - git status -sb
+      - git log --graph --all
+        --pretty='%C(240)%h%C(reset) -%C(auto)%d%Creset %s %C(242)(%an %ar)'
