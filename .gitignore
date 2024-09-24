@@ -4,3 +4,5 @@ Desktop.ini
 /bin/
 /.cache/
 /vendor/
+
+dist/

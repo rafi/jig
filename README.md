@@ -1,5 +1,8 @@
 # Jig - tmux launcher
 
+[![Actions Status](https://github.com/rafi/jig/actions/workflows/test.yml/badge.svg)](https://github.com/rafi/jig/actions/workflows/test.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/rafi/jig)](https://goreportcard.com/report/github.com/rafi/jig)
+
 > Automates your [tmux](https://github.com/tmux/tmux) workflow.
 > Inspired by [tmuxinator](https://github.com/tmuxinator/tmuxinator),
 > [tmuxp](https://github.com/tmux-python/tmuxp), and
