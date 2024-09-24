@@ -9,14 +9,14 @@ import (
 	"github.com/rafi/jig/pkg/shell"
 )
 
-// used for loading included files
+// Used for loading included files
 type Fragment struct {
 	content *yaml.Node
 }
 
 func (f *Fragment) UnmarshalYAML(value *yaml.Node) error {
 	var err error
-	// process includes in fragments
+	// Process includes in fragments
 	f.content, err = resolveIncludes(value)
 	return err
 }

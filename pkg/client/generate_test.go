@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/rafi/jig/pkg/client"
 	"github.com/rafi/jig/pkg/tmux"
@@ -52,6 +53,6 @@ func TestPrintCurrentSession(t *testing.T) {
 		InSession: false,
 	}
 	actualConfig, err := client.GenerateSessionConfig("test")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedConfig, actualConfig)
 }

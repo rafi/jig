@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/rafi/jig/pkg/client"
@@ -16,6 +17,9 @@ type StartCmd struct {
 func (c *StartCmd) Run(jig client.Jig) error {
 	configPath, err := FindProjectFile(c.Project, jig.Options.File)
 	if err != nil {
+		if errors.Is(err, client.ErrConfigNotFound) && c.Project != "" {
+			return fmt.Errorf("project file not found for %q", c.Project)
+		}
 		return err
 	}
 	config, err := client.LoadConfig(configPath, c.Variables)
@@ -24,9 +28,9 @@ func (c *StartCmd) Run(jig client.Jig) error {
 	}
 
 	if len(c.Windows) == 0 {
-		fmt.Printf("Starting %q session…\n", shortenPath(configPath))
+		fmt.Printf("Starting %q session…\n", ShortenPath(configPath))
 	} else {
-		fmt.Printf("Creating %q new windows…\n", shortenPath(configPath))
+		fmt.Printf("Creating %q new windows…\n", ShortenPath(configPath))
 	}
 	return jig.Start(config, c.Windows)
 }

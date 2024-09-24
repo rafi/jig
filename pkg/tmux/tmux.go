@@ -1,7 +1,6 @@
 package tmux
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -53,14 +52,7 @@ func (t TmuxClient) NewWindow(target Target, name, dir string) (string, error) {
 func (t TmuxClient) NewPane(target Target, dir, split string) (string, error) {
 	args := []string{"split-window", "-Pd", "-t", target.Get()}
 
-	switch split {
-	case "v", "-v", "vertical":
-		args = append(args, "-v")
-	case "h", "-h", "horizontal":
-		args = append(args, "-h")
-	default:
-		fmt.Printf("Invalid split type: %s\n", split)
-	}
+	args = append(args, ParsePaneType(split))
 
 	if dir != "" {
 		args = append(args, "-c", shell.ExpandPath(dir))

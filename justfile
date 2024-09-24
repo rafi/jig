@@ -19,6 +19,7 @@ LDFLAGS := (
   + " -X " + GOMODULE + "/internal/version.metadata=" + VERSION_METADATA
   + " -X " + GOMODULE + "/internal/version.gitCommit=" + GIT_COMMIT
   + " -X " + GOMODULE + "/internal/version.gitTreeState=" + GIT_DIRTY
+  + " -X " + GOMODULE + "/internal/version.date=" + `date -u +%Y-%m-%dT%H:%M:%SZ`
 )
 
 GOLANGCI_VERSION := "latest"
@@ -37,7 +38,7 @@ build $GOOS='' $GOARCH='':
 
 # run tests
 test:
-  go test -v ./...
+  go test ./...
 
 # run golangci-lint checks
 lint *flags: _golangci

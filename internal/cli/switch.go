@@ -11,7 +11,7 @@ import (
 	"github.com/rafi/jig/pkg/tmux"
 )
 
-type SwitchCmd struct{
+type SwitchCmd struct {
 	Session string `arg:"" optional:"" help:"Optional session name to switch to."`
 }
 

@@ -59,6 +59,9 @@ func parseOutput(output string, obj any) error {
 				}
 				field.Set(reflect.ValueOf(date))
 			}
+
+		default:
+			return fmt.Errorf("unsupported type: %s", fieldType.Kind())
 		}
 	}
 	return nil
@@ -72,4 +75,16 @@ func parseUnixTime(epoch string) (time.Time, error) {
 	}
 	created := time.Unix(createdEpoch, 0)
 	return created, nil
+}
+
+// ParsePaneType returns the tmux pane split type.
+func ParsePaneType(paneType string) string {
+	switch paneType {
+	case "v", "-v", "vertical":
+		return "-v"
+	case "h", "-h", "horizontal":
+		return "-h"
+	default:
+		return fmt.Sprintf("Invalid split type: %s\n", paneType)
+	}
 }

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/rafi/jig/pkg/client"
 	"github.com/rafi/jig/pkg/tmux"
@@ -55,7 +56,7 @@ func TestDetectInTmuxSession(t *testing.T) {
 			os.Setenv(key, value)
 		}
 		j, err := client.New(opts, &MockCommander{})
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, j.InSession, v.inSession)
 	}
 	os.Clearenv()
@@ -278,7 +279,7 @@ func TestStartStopSession(t *testing.T) {
 				Session: "ses",
 				Path:    "/tmp",
 				Windows: []client.Window{
-					{ Name:   "win1" },
+					{Name: "win1"},
 				},
 			},
 			[]string{},
@@ -298,14 +299,14 @@ func TestStartStopSession(t *testing.T) {
 		t.Run("start session: "+testDescription, func(t *testing.T) {
 			commander := &MockCommander{[]string{}, params.commanderOutputs}
 			params.client.Tmux = tmux.TmuxClient{Bin: "tmux", Cmd: commander}
-			assert.NoError(t, params.client.Start(params.config, params.windows))
+			require.NoError(t, params.client.Start(params.config, params.windows))
 			assert.Equal(t, params.startCommands, commander.Commands)
 		})
 
 		t.Run("stop session: "+testDescription, func(t *testing.T) {
 			commander := &MockCommander{[]string{}, params.commanderOutputs}
 			params.client.Tmux = tmux.TmuxClient{Bin: "tmux", Cmd: commander}
-			assert.NoError(t, params.client.Stop(params.config, params.windows))
+			require.NoError(t, params.client.Stop(params.config, params.windows))
 			assert.Equal(t, params.stopCommands, commander.Commands)
 		})
 	}

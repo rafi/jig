@@ -48,13 +48,13 @@ func New(opts Options, commander shell.Commander) (Jig, error) {
 		Bin: filepath.Clean(opts.TmuxPath),
 		Cmd: commander,
 	}
-	_, inTmuxSession := os.LookupEnv("TMUX")
+	_, inSession := os.LookupEnv("TMUX")
 
 	return Jig{
 		Tmux:      tmux,
 		Options:   opts,
 		Theme:     NewThemeDefault(),
-		InSession: inTmuxSession,
+		InSession: inSession,
 	}, nil
 }
 
@@ -63,10 +63,7 @@ func (j Jig) SwitchOrAttach(session string) error {
 	if j.InSession {
 		return j.Tmux.SwitchClient(session)
 	}
-	if !j.InSession {
-		return j.Tmux.Attach(session, os.Stdin, os.Stdout, os.Stderr)
-	}
-	return nil
+	return j.Tmux.Attach(session, os.Stdin, os.Stdout, os.Stderr)
 }
 
 // execShellCommands executes a list of shell commands in a given directory.

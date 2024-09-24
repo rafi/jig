@@ -24,9 +24,9 @@ func (c *StopCmd) Run(jig client.Jig) error {
 	}
 
 	if len(c.Windows) == 0 {
-		fmt.Printf("Terminating %q session…\n", shortenPath(configPath))
+		fmt.Printf("Terminating %q session…\n", ShortenPath(configPath))
 	} else {
-		fmt.Printf("Killing %q windows…\n", shortenPath(configPath))
+		fmt.Printf("Killing %q windows…\n", ShortenPath(configPath))
 	}
 	return jig.Stop(config, c.Windows)
 }

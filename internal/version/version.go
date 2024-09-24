@@ -15,6 +15,8 @@ var (
 	gitCommit = "HEAD"
 	// gitTreeState is the state of the git tree
 	gitTreeState = ""
+	// date is the build timestamp
+	date = ""
 )
 
 // BuildInfo describes the compile time information.
@@ -25,6 +27,8 @@ type BuildInfo struct {
 	GitCommit string `json:"git_commit,omitempty"`
 	// GitTreeState is the state of the git tree.
 	GitTreeState string `json:"git_tree_state,omitempty"`
+	// Date is the build timestamp.
+	Date string `json:"date,omitempty"`
 }
 
 // GetVersion returns the semver string of the version
@@ -55,5 +59,6 @@ func Get() BuildInfo {
 		Version:      GetVersion(),
 		GitCommit:    gitCommit,
 		GitTreeState: gitTreeState,
+		Date:         date,
 	}
 }

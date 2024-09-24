@@ -5,8 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rafi/jig/pkg/client"
 	"github.com/xlab/treeprint"
+
+	"github.com/rafi/jig/pkg/client"
+	"github.com/rafi/jig/pkg/tmux"
 )
 
 type ListCmd struct {
@@ -55,9 +57,13 @@ func displayConfigTree(project client.Config) treeprint.Tree {
 		branch.SetValue(session.Session)
 		tree.AddBranch(branch)
 	}
-	for _, win := range project.Windows {
+	for idx, win := range project.Windows {
 		winBranch := treeprint.New()
-		winBranch.SetValue(makeTreeWindowEntry(win))
+		winName := makeTreeWindowEntry(win)
+		if winName == "" {
+			winName = fmt.Sprintf("[%d]", idx+1)
+		}
+		winBranch.SetValue(winName)
 		for _, pane := range win.Panes {
 			winBranch.AddNode(makeTreePaneEntry(pane))
 		}
@@ -82,7 +88,7 @@ func makeTreeWindowEntry(win client.Window) string {
 		title += strings.Join(win.Commands, "\n")
 	}
 	if len(win.Path) > 0 {
-		title += title + " " + win.Path
+		title = fmt.Sprintf("[%s] %s", win.Path, title)
 	}
 	return title
 }
@@ -98,6 +104,9 @@ func makeTreePaneEntry(pane client.Pane) string {
 	}
 	if len(pane.Path) > 0 {
 		title += title + " " + pane.Path
+	}
+	if title == "" {
+		title = tmux.ParsePaneType(pane.Type)
 	}
 	return title
 }

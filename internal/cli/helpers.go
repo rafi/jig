@@ -15,7 +15,11 @@ import (
 type ErrConfigNotFound struct{ Project, Path string }
 
 func (e ErrConfigNotFound) Error() string {
-	return fmt.Sprintf("config not found for project %s at %q", e.Project, e.Path)
+	return fmt.Sprintf(
+		"config not found for project '%s' at %q",
+		e.Project,
+		ShortenPath(e.Path),
+	)
 }
 
 // FindProjectFile parses the cli arguments and returns a runtime configuration.
@@ -35,15 +39,15 @@ func FindProjectFile(name, file string) (string, error) {
 
 // If project name is not set, try to look for config file in current directory.
 func getDefaultConfig() (string, error) {
-	configPath, err := os.Getwd()
+	cwd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
-	configPath = filepath.Join(configPath, client.DefaultConfigFile)
+	configPath := filepath.Join(cwd, client.DefaultConfigFile)
 	if _, err := os.Stat(configPath); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			return "", ErrConfigNotFound{
-				Project: filepath.Base(configPath),
+				Project: filepath.Base(cwd),
 				Path:    configPath,
 			}
 		}
@@ -67,8 +71,8 @@ func getConfigPath(name string) (string, error) {
 	return configPath, nil
 }
 
-// shortenPath returns a path with user's home replaced to ~/
-func shortenPath(path string) string {
+// ShortenPath returns a path with user's home replaced to ~/
+func ShortenPath(path string) string {
 	if !filepath.IsAbs(path) {
 		path = filepath.Clean(path)
 	}
